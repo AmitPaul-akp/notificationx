@@ -57,14 +57,32 @@ const BUSINESS_TYPES: Option[] = [
     { id: "blog", icon: "blog", label: __("Blog & Content Website", "notificationx") },
 ];
 
+// Each goal must map to ≥3 campaigns in CAMPAIGN_CATALOG so the Recommended step
+// always has a full row. "Build Social Proof" replaces the narrower "Showcase
+// Reviews" — only one campaign truly showcases reviews, but three genuinely
+// build social proof (Sales Notification, Reviews, Growth Alert).
 const GOALS: Option[] = [
     { id: "sales", icon: "conversions", label: __("Increase Sales", "notificationx") },
     { id: "leads", icon: "leads", label: __("Collect Leads", "notificationx") },
     { id: "signups", icon: "signups", label: __("Get More Signups", "notificationx") },
     { id: "promote-courses", icon: "course", label: __("Promote Courses", "notificationx") },
-    { id: "reviews", icon: "reviews", label: __("Showcase Reviews", "notificationx") },
-    { id: "user-engagement", icon: "engagement", label: __("User Engagement", "notificationx") },
+    { id: "social-proof", icon: "social-proof", label: __("Build Social Proof", "notificationx") },
+    { id: "user-engagement", icon: "engagement", label: __("Boost Engagement", "notificationx") },
 ];
+
+// The Primary Goals pre-selected for each business type. Picking a business
+// reshapes the goal selection to what that business typically cares about (the
+// user can still toggle any goal afterward). Every id must exist in GOALS.
+const BUSINESS_GOAL_DEFAULTS: Record<string, string[]> = {
+    ecommerce: ["sales", "social-proof"],
+    saas: ["signups", "leads"],
+    agency: ["leads", "social-proof"],
+    course: ["promote-courses", "signups"],
+    coaching: ["leads", "promote-courses"],
+    blog: ["user-engagement", "leads"],
+};
+
+const DEFAULT_BUSINESS = "ecommerce";
 
 /**
  * Real NotificationX campaigns used for recommendations. `type`/`source` are the
@@ -98,7 +116,8 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "conversions",
         source: "woocommerce",
         isPro: false,
-        goals: ["sales", "signups", "reviews"],
+        // Recent purchases drive sales and act as social proof.
+        goals: ["sales", "social-proof"],
     },
     {
         id: "bar",
@@ -108,7 +127,8 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "notification_bar",
         source: "press_bar",
         isPro: false,
-        goals: ["sales", "leads", "promote-courses", "user-engagement", "reviews"],
+        // The all-purpose announcer: discounts, CTAs, signups, course promos, updates.
+        goals: ["sales", "leads", "signups", "promote-courses", "user-engagement"],
     },
     {
         id: "reviews",
@@ -118,7 +138,8 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "reviews",
         source: "wp_reviews",
         isPro: false,
-        goals: ["reviews", "signups", "sales"],
+        // Reviews are social proof, and that trust drives sales.
+        goals: ["social-proof", "sales"],
     },
     {
         id: "exit_intent",
@@ -128,6 +149,7 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "exit_intent",
         source: "exit_intent_custom",
         isPro: false,
+        // Last-chance capture: leads, signups, a course offer, or a save-the-sale discount.
         goals: ["leads", "signups", "promote-courses", "sales"],
     },
     {
@@ -138,17 +160,8 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "popup",
         source: "popup_notification",
         isPro: false,
+        // Centered popup: capture leads/signups, promote a course, or engage with an offer.
         goals: ["leads", "signups", "promote-courses", "user-engagement"],
-    },
-    {
-        id: "gdpr",
-        title: __("Cookie Notice", "notificationx"),
-        desc: __("Inform users and stay privacy compliant quickly and effortlessly.", "notificationx"),
-        img: `${CDN}/2025/06/GDPR.gif`,
-        type: "gdpr",
-        source: "gdpr",
-        isPro: false,
-        goals: ["leads", "user-engagement"],
     },
     {
         id: "growth",
@@ -158,7 +171,8 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "inline",
         source: "woo_inline",
         isPro: true,
-        goals: ["sales", "signups", "user-engagement"],
+        // Live sales counts are social proof; low-stock urgency drives sales and engagement.
+        goals: ["sales", "social-proof", "user-engagement"],
     },
     {
         id: "flashing",
@@ -168,36 +182,38 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "flashing_tab",
         source: "flashing_tab",
         isPro: true,
+        // Re-grabs attention — for a sale, a course promo, or general re-engagement.
         goals: ["sales", "promote-courses", "user-engagement"],
     },
 ];
 
-/** Fisher–Yates shuffle — returns a new array, leaves the input untouched. */
-const shuffle = <T,>(arr: T[]): T[] => {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-};
-
 /**
  * Recommend campaigns for the selected goals — purely goal-driven, no fixed
- * defaults: a campaign shows only when it serves one of the chosen goals. Each
- * goal maps to at least three related campaigns, so the result is naturally ≥3;
- * the padding loop is a safety net for any future narrow goal. The list is
- * shuffled on every call so the Recommended step surfaces a fresh ordering each
- * visit; the slider only kicks in when there are more than three (see
- * `StepRecommended`).
+ * defaults: a campaign shows only when it serves one of the chosen goals.
+ *
+ * Deterministic and relevance-ranked: campaigns are ordered by how many of the
+ * selected goals they serve (most on-point first), with a stable catalog-order
+ * tie-break. Because there is no randomness, the same selection always yields
+ * the same list — so changing a Primary Goal visibly re-filters the Recommended
+ * step instead of just reshuffling it.
+ *
+ * Each goal maps to at least three related campaigns, so the result is naturally
+ * ≥3; the padding loop is a safety net for any future narrow goal. The slider
+ * only kicks in when there are more than three (see `StepRecommended`).
  */
 const recommendFor = (goalIds: string[]): Campaign[] => {
-    const recs = shuffle(
-        CAMPAIGN_CATALOG.filter((c) => c.goals.some((g) => goalIds.includes(g)))
-    );
+    const matchCount = (c: Campaign) =>
+        c.goals.filter((g) => goalIds.includes(g)).length;
+
+    const recs = CAMPAIGN_CATALOG
+        .map((c, i) => ({ c, i, score: matchCount(c) }))
+        .filter((x) => x.score > 0)
+        // most relevant first; stable catalog order breaks ties
+        .sort((a, b) => b.score - a.score || a.i - b.i)
+        .map((x) => x.c);
 
     // Safety net: guarantee at least three cards even for a narrow selection.
-    for (const c of shuffle(CAMPAIGN_CATALOG)) {
+    for (const c of CAMPAIGN_CATALOG) {
         if (recs.length >= 3) break;
         if (!recs.includes(c)) recs.push(c);
     }
@@ -209,8 +225,20 @@ const SetupWizard = (props) => {
     const builder = useNotificationXContext();
     const [active, setActive] = useState(0);
     const [busy, setBusy] = useState(false);
-    const [businessType, setBusinessType] = useState<string>("ecommerce");
-    const [goals, setGoals] = useState<string[]>(["sales"]);
+    const [businessType, setBusinessType] = useState<string>(DEFAULT_BUSINESS);
+    const [goals, setGoals] = useState<string[]>(
+        BUSINESS_GOAL_DEFAULTS[DEFAULT_BUSINESS]
+    );
+
+    /**
+     * Switch business type and reshape the Primary Goals to that type's
+     * recommended defaults — so the goal selection always reflects the chosen
+     * business (the user can still toggle individual goals afterward).
+     */
+    const selectBusiness = (id: string) => {
+        setBusinessType(id);
+        setGoals(BUSINESS_GOAL_DEFAULTS[id] ?? ["sales"]);
+    };
 
     const adminUrl = builder?.admin_url || "/wp-admin/";
 
@@ -301,7 +329,7 @@ const SetupWizard = (props) => {
                     <StepBusiness
                         businessType={businessType}
                         goals={goals}
-                        onBusiness={setBusinessType}
+                        onBusiness={selectBusiness}
                         onToggleGoal={toggleGoal}
                         onBack={back}
                         onNext={next}
@@ -531,8 +559,9 @@ const SelectableRow = ({
 /* Step 3 — Recommended campaigns                                      */
 /* ------------------------------------------------------------------ */
 const StepRecommended = ({ goals, isProActive, onConfigure, onBack, onNext }) => {
-    // Shuffle once per visit/goal-change — not on every re-render — so the cards
-    // stay put while the user scrolls but reshuffle when they return to the step.
+    // Re-filter whenever the selected goals change (memoised so the cards stay
+    // put while the user scrolls within the step). Deterministic — same goals
+    // always yield the same ranked list.
     const recs = useMemo(() => recommendFor(goals), [goals]);
     // The slider (arrows + scrolling) only activates when there are more than
     // the three cards that fit a row.

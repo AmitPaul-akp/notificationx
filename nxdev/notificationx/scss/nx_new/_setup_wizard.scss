@@ -428,26 +428,26 @@ body.nx-setup-wizard-active {
 
     &__welcome-title {
         font-weight: 700;
-        font-size: 52px;
+        font-size: 23px;
         line-height: 1.16;
         letter-spacing: -0.96px;
         color: $sw-ink;
-        margin: 0 0 16px;
+        margin: 0 0 10px !important;
     }
 
     &__welcome-sub {
-        font-size: 18px;
-        line-height: 28px;
+        font-size: 16px;
+        line-height: 1.3;
         color: $sw-body2;
-        margin: 0 0 32px;
+        margin: 0 0 20px;
         max-width: 420px;
     }
 
     &__feature-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        margin: 0 0 32px;
+        gap: 10px;
+        margin: 0 0 20px;
     }
 
     &__feature {
@@ -527,7 +527,6 @@ body.nx-setup-wizard-active {
 
     &__welcome-fineprint {
         margin: 16px 0 0;
-        max-width: 384px;
         font-size: 10px;
         line-height: 1.6;
         color: rgba(71, 69, 86, 0.6);
@@ -536,7 +535,7 @@ body.nx-setup-wizard-active {
     // ---- Right illustration / live-preview panel ----------------------
     &__welcome-aside {
         position: relative;
-        flex: 0 0 45%;
+        flex: 0 0 50%;
         display: flex;
         flex-direction: column;
         align-items: center;

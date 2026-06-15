@@ -310,10 +310,10 @@ body.nx-setup-wizard-active {
     // The in-card header block; its bottom border spans the FULL card width.
     &__cardhead {
         border-bottom: 1px solid $sw-line;
-    }
-
-    &__brandbar {
-        padding: 22px 32px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 30px;
     }
 
     &__wordmark {
@@ -330,8 +330,6 @@ body.nx-setup-wizard-active {
         display: flex;
         align-items: center;
         gap: 16px;
-        max-width: 640px;
-        margin-top: 10px;
         padding: 16px 32px;
     }
 
@@ -443,8 +441,7 @@ body.nx-setup-wizard-active {
 
     &__feature {
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
         gap: 12px;
         padding: 16px;
         border: 1px solid $sw-line;

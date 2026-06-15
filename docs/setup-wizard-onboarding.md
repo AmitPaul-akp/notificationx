@@ -70,12 +70,12 @@ Key backend constants / options (in `SetupWizard.php`):
 | --- | --- |
 | [`nxdev/notificationx/admin/SetupWizard/SetupWizard.tsx`](../nxdev/notificationx/admin/SetupWizard/SetupWizard.tsx) | The whole wizard: shared header + stepper, the four step components, data catalogs, recommendation logic, persistence + hand-off. |
 | [`nxdev/notificationx/admin/SetupWizard/icons.tsx`](../nxdev/notificationx/admin/SetupWizard/icons.tsx) | Inline 20×20 stroke-icon set (`WizardIcon`). Add a path here before referencing a new `icon` id. |
-| [`nxdev/notificationx/admin/SetupWizard/Illustration.tsx`](../nxdev/notificationx/admin/SetupWizard/Illustration.tsx) | Static Welcome-screen illustration (two mock notification cards framing the dark Growth Dashboard hero `growth-dashboard.webp`). |
+| [`nxdev/notificationx/admin/SetupWizard/Illustration.tsx`](../nxdev/notificationx/admin/SetupWizard/Illustration.tsx) | Welcome-screen illustration: a browser frame with a shimmering skeleton wireframe page + a Sales Popup that slides in at the bottom-left and cycles through buyers. |
 | [`nxdev/notificationx/scss/nx_new/_setup_wizard.scss`](../nxdev/notificationx/scss/nx_new/_setup_wizard.scss) | All wizard styles, BEM-namespaced under `.nx-sw`. |
 | [`nxdev/notificationx/Route.tsx`](../nxdev/notificationx/Route.tsx) | Maps the `nx-setup-wizard` page to `<SetupWizard/>`. |
 
-`LivePreview.tsx` is **dead code** (the animated preview was replaced by the
-static `Illustration`); left in place but unused.
+`LivePreview.tsx` is **dead code** (the current `Illustration` is a leaner,
+self-contained browser-frame preview); left in place but unused.
 
 ---
 
@@ -147,11 +147,14 @@ the card at the bottom.
 ## The four steps
 
 1. **Welcome** (`StepWelcome`) — title + feature grid + Get Started / Skip Setup,
-   with the lavender illustration panel on the right (`Illustration`): two mock
-   notification cards framing the Growth Dashboard hero. The top "Alex just
-   purchased!" sales card (`nx-sw__mock--top`) gently floats up/down via the
-   `nx-sw-float` keyframe (disabled under `prefers-reduced-motion`). Skip →
-   persists completion and redirects to the dashboard.
+   with the lavender illustration panel on the right (`Illustration`): a mini
+   **browser frame** (`nx-sw__browser`) whose page is a shimmering lavender
+   **skeleton wireframe** (`nx-sw__wire*`, via the `nx-sw-shimmer` mixin), with a
+   **Sales Popup** card (`nx-sw__mock--popup`) sliding in at the bottom-left
+   (`nx-sw__slot-popup` + `nx-sw-cycle`) and cycling through buyers — mirroring
+   how the notification appears on a live site. Disabled under
+   `prefers-reduced-motion` (popup rests static). Skip → persists completion and
+   redirects to the dashboard.
 2. **Business Details** (`StepBusiness`) — one card, two divided columns:
    **Business Type** (single-select, radio semantics) and **Primary Goals**
    (multi-select, checkbox semantics). Each is a `SelectableRow`; only the

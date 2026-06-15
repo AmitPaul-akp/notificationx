@@ -26,6 +26,15 @@ $sw-ink: #0b1c30; // welcome heading
 $sw-body2: #474556; // welcome body text
 $sw-line: #c9c4d9; // welcome card borders / dividers
 $sw-lav: #eff4ff; // illustration panel background
+$sw-wire: #d4daf2; // skeleton wireframe base (lavender)
+$sw-wire-hi: #e9edfb; // skeleton wireframe shimmer highlight
+
+// Static placeholder fill for skeleton wireframe shapes. Kept as a flat fill
+// (no shimmer sweep) so the Welcome illustration's page mockup stays static —
+// only the Sales Popup animates.
+@mixin nx-sw-shimmer($base: #e8e8f3, $hi: #f4f4fb) {
+    background: $base;
+}
 
 body.nx-setup-wizard-active {
     #adminmenumain,
@@ -61,7 +70,7 @@ body.nx-setup-wizard-active {
     font-size: 14px;
     line-height: 1.5;
 
-    @import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap");
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
     * {
         box-sizing: border-box;
@@ -79,7 +88,6 @@ body.nx-setup-wizard-active {
 
     // ---- Title / subtitle ---------------------------------------------
     &__title {
-        font-family: "Hanken Grotesk", sans-serif;
         font-weight: 700;
         font-size: 34px;
         line-height: 1.2;
@@ -313,15 +321,19 @@ body.nx-setup-wizard-active {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 20px 30px;
+        padding: 10px 30px;
     }
 
-    &__wordmark {
-        font-family: "Hanken Grotesk", sans-serif;
-        font-weight: 700;
-        font-size: 24px;
-        line-height: 32px;
-        color: $sw-brand;
+    // The NotificationX brand logo (icon + wordmark SVG) in the card header.
+    &__brandbar {
+        display: inline-flex;
+        align-items: center;
+
+        .nx-brand-logo {
+            display: block;
+            height: 48px;
+            width: auto;
+        }
     }
 
     // ---- In-card Figma stepper ----------------------------------------
@@ -415,9 +427,8 @@ body.nx-setup-wizard-active {
     }
 
     &__welcome-title {
-        font-family: "Hanken Grotesk", sans-serif;
         font-weight: 700;
-        font-size: 44px;
+        font-size: 52px;
         line-height: 1.16;
         letter-spacing: -0.96px;
         color: $sw-ink;
@@ -471,7 +482,7 @@ body.nx-setup-wizard-active {
     &__welcome-actions {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 28px;
     }
 
     &__cta {
@@ -483,7 +494,7 @@ body.nx-setup-wizard-active {
         border-radius: 8px;
         background: $sw-brand;
         color: #fff;
-        font-family: "Hanken Grotesk", sans-serif;
+        font-family: "Inter", sans-serif;
         font-weight: 600;
         font-size: 18px;
         line-height: 1.4;
@@ -495,23 +506,21 @@ body.nx-setup-wizard-active {
         }
     }
 
+    // Plain underlined text link — no button box.
     &__cta-skip {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 14px 28px;
-        border: 1px solid $sw-line;
-        border-radius: 8px;
-        background: #fff;
+        padding: 0;
+        border: none;
+        background: none;
         color: $sw-body2;
         font-family: "Inter", sans-serif;
         font-weight: 500;
-        font-size: 14px;
+        font-size: 15px;
+        text-decoration: underline;
+        text-underline-offset: 3px;
         cursor: pointer;
-        transition: border-color 0.15s ease, color 0.15s ease;
+        transition: color 0.15s ease;
 
         &:hover {
-            border-color: $sw-brand;
             color: $sw-brand;
         }
     }
@@ -559,55 +568,45 @@ body.nx-setup-wizard-active {
             background: #fe7d66;
         }
 
-        .nx-sw__showcase,
-        .nx-sw__illus {
+        .nx-sw__showcase {
             position: relative;
             z-index: 1;
             width: 100%;
         }
     }
 
-    // ---- Static Figma illustration (node 4440:259) --------------------
-    &__illus {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 24px;
-        max-width: 384px;
-        margin: 0 auto;
-    }
-
+    // ---- The Sales Popup card (slides into the browser frame) ---------
     &__mock {
         display: flex;
         align-items: center;
-        gap: 16px;
-        padding: 16px;
-        background: #f8f9ff;
+        gap: 12px;
+        padding: 14px;
+        background: #fff;
         border-radius: 12px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-            0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 16px 32px -8px rgba(23, 15, 73, 0.22),
+            0 4px 10px -4px rgba(23, 15, 73, 0.14);
 
-        // The "Alex just purchased!" sales card gently floats up and down.
-        &--top {
-            animation: nx-sw-float 3.6s ease-in-out infinite;
-            will-change: transform;
-        }
-
-        &--bottom {
-            align-self: flex-end;
-            width: 307px;
-            max-width: 100%;
+        // Inside the site viewport the popup is a compact, fixed-width card.
+        // It sits above the scrim (z-index 4) with a stronger, brand-tinted
+        // shadow + crisp white ring so it reads as the focal point of Step 1.
+        &--popup {
+            width: 300px;
+            max-width: calc(100% - 32px);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9),
+                0 24px 48px -12px rgba(23, 15, 73, 0.4),
+                0 8px 20px -6px rgba(86, 20, 213, 0.28);
         }
     }
 
     &__mock-avatar img {
         display: block;
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
     }
 
     &__mock-body {
+        flex: 1;
         display: flex;
         flex-direction: column;
         gap: 2px;
@@ -634,35 +633,17 @@ body.nx-setup-wizard-active {
         color: $sw-brand;
     }
 
-    &__mock-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        background: rgba(254, 125, 102, 0.2);
-        color: #e8553a;
-        flex-shrink: 0;
-    }
-
-    &__hero {
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-
-        img {
-            display: block;
-            width: 100%;
-            height: auto;
-        }
-    }
-
     // ---- Animated live-preview showcase -------------------------------
     &__showcase {
         display: flex;
         flex-direction: column;
         gap: 18px;
+    }
+
+    // Positioning context for the browser + Sales Popup. Does NOT clip, so the
+    // popup can overhang the browser's left edge (outside the window).
+    &__stage {
+        position: relative;
     }
 
     // mini browser window that hosts the real notifications
@@ -789,33 +770,69 @@ body.nx-setup-wizard-active {
         background: linear-gradient(180deg, #fbfbff 0%, #f3f3fb 100%);
     }
 
-    &__browser.is-bar &__site-skeleton {
-        margin-top: 46px;
+    // ---- Skeleton wireframe of the visitor's page --------------------
+    // A lavender store page: a text column on the left and a grid of product
+    // cards on the right, shimmering as if loading. The Sales Popup slides in
+    // over it. The grid intentionally overflows the viewport so the second row
+    // peeks below the fold, like a real catalog.
+    &__wire {
+        display: grid;
+        grid-template-columns: 0.72fr 2fr;
+        gap: 22px;
+        align-items: start;
     }
 
-    &__site-skeleton {
+    // Left text column (product description / sidebar copy).
+    &__wire-aside {
         display: flex;
         flex-direction: column;
-        gap: 11px;
+        gap: 12px;
+        padding-top: 6px;
+    }
 
-        span {
-            height: 12px;
+    // Right product grid — two columns, rows flow and overflow below the fold.
+    &__wire-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px 18px;
+    }
+
+    &__wire-card {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    // Product image block.
+    &__wire-thumb {
+        height: 96px;
+        border-radius: 12px;
+        @include nx-sw-shimmer($sw-wire, $sw-wire-hi);
+    }
+
+    &__wire-line {
+        height: 8px;
+        border-radius: 4px;
+        @include nx-sw-shimmer($sw-wire, $sw-wire-hi);
+
+        // Heading bar — taller than body lines.
+        &--title {
+            height: 16px;
             border-radius: 6px;
-            background: #e7e7f2;
-
-            &.nx-sw__sk-hero {
-                height: 80px;
-                border-radius: 12px;
-                background: linear-gradient(120deg, #e9e7fb, #f1eafc);
-                margin-bottom: 6px;
-            }
-            &.nx-sw__sk-short {
-                width: 58%;
-            }
-            &:not(.nx-sw__sk-hero):not(.nx-sw__sk-short) {
-                width: 88%;
-            }
         }
+
+        &--short {
+            width: 62%;
+        }
+    }
+
+    // The aside CTA / filter pill.
+    &__wire-pill {
+        margin-top: 6px;
+        width: 96px;
+        height: 26px;
+        border-radius: 999px;
+        background: rgba(86, 20, 213, 0.4);
     }
 
     // placement slots inside the site viewport
@@ -830,8 +847,10 @@ body.nx-setup-wizard-active {
 
     &__slot-popup {
         position: absolute;
-        left: 16px;
-        bottom: 16px;
+        // Overhang the browser's left edge (outside the window) and lift off
+        // the bottom — positioned against the stage, so it isn't clipped.
+        left: -30px;
+        bottom: 15px;
         z-index: 4;
         // One full in → hold → out cycle; JS advances to the next buyer on end.
         animation: nx-sw-cycle 4.8s ease both;
@@ -849,7 +868,14 @@ body.nx-setup-wizard-active {
     &__site-dim {
         position: absolute;
         inset: 0;
-        background: rgba(20, 15, 43, 0.3);
+        // Above the wireframe page, below the popup slots (popup z-index: 4) so
+        // the Sales Popup keeps the spotlight while the page recedes behind it.
+        z-index: 2;
+        // Light scrim — just enough to push the wireframe back without hiding
+        // it; the Sales Popup's elevation does the rest of the focus work.
+        background: rgba(20, 15, 43, 0.14);
+        pointer-events: none;
+        animation: nx-sw-fade 0.6s ease both;
     }
 
     // ---- Scope the REAL frontend notifications into the stage ---------
@@ -989,7 +1015,6 @@ body.nx-setup-wizard-active {
     }
 
     &__col-title {
-        font-family: "Hanken Grotesk", sans-serif;
         font-size: 24px;
         line-height: 32px;
         font-weight: 600;
@@ -1203,7 +1228,6 @@ body.nx-setup-wizard-active {
         padding: 18px;
 
         h3 {
-            font-family: "Hanken Grotesk", sans-serif;
             font-size: 16px;
             font-weight: 700;
             color: $sw-h;
@@ -1323,7 +1347,7 @@ body.nx-setup-wizard-active {
             flex-basis: auto;
         }
         &__welcome-title {
-            font-size: 34px;
+            font-size: 40px;
         }
         &__columns {
             flex-direction: column;
@@ -1349,26 +1373,23 @@ body.nx-setup-wizard-active {
         .nx-sw__slot-popup,
         .nx-sw__slot-bar,
         .nx-sw__slot-center .nx-popup,
+        .nx-sw__site-dim,
         .nx-sw__tab-fav,
         .nx-sw__flash-a,
         .nx-sw__flash-b,
-        .nx-sw__mock--top {
+        .nx-sw__wire-thumb,
+        .nx-sw__wire-pill,
+        .nx-sw__wire-line {
             animation: none !important;
         }
         .nx-sw__flash-b {
             display: none;
         }
-    }
-}
-
-// Gentle up/down float for the Welcome sales card.
-@keyframes nx-sw-float {
-    0%,
-    100% {
-        transform: translateY(-6px);
-    }
-    50% {
-        transform: translateY(6px);
+        // The Sales Popup rests visible at the bottom-left (no slide cycle).
+        .nx-sw__slot-popup {
+            opacity: 1 !important;
+            transform: none !important;
+        }
     }
 }
 
@@ -1380,6 +1401,16 @@ body.nx-setup-wizard-active {
     100% {
         opacity: 1;
         transform: translateY(0) scale(1);
+    }
+}
+
+// Focus scrim: fade the dim overlay in so the page recedes behind the popup.
+@keyframes nx-sw-fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
     }
 }
 

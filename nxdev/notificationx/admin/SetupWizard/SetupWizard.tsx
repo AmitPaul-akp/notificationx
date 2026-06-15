@@ -1,9 +1,10 @@
 import { __ } from "@wordpress/i18n";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import useNotificationXContext from "../../hooks/useNotificationXContext";
 import nxHelper from "../../core/functions";
 import WizardIcon from "./icons";
 import Illustration from "./Illustration";
+import BrandLogo from "../../frontend/themes/helpers/BrandLogo";
 
 /**
  * NotificationX onboarding "Setup Wizard".
@@ -66,10 +67,10 @@ const GOALS: Option[] = [
 ];
 
 /**
- * Real NotificationX campaigns used for recommendations. GIFs + types/sources
- * are sourced from the Dashboard's `NotificationType` catalog (core/constants).
- * `goals` maps each campaign to the onboarding goals it serves; `isPro` marks
- * Pro-gated types so the Recommended step shows a Free + Pro combination.
+ * Real NotificationX campaigns used for recommendations. `type`/`source` are the
+ * valid builder identifiers (TypesFactory + each Type's default source) that the
+ * "Configure" deep-link presets; `goals` maps each campaign to the onboarding
+ * goals it serves; `isPro` marks Pro-gated types so the step mixes Free + Pro.
  */
 type Campaign = {
     id: string;
@@ -84,6 +85,10 @@ type Campaign = {
 
 const CDN = "https://notificationx.com/wp-content/uploads";
 
+// `goals` lists the onboarding goals (see GOALS) each campaign genuinely serves
+// — recommendations are driven purely by this, with NO always-on defaults, so a
+// goal like "Collect Leads" never surfaces an unrelated Sales Notification.
+// Every goal below maps to at least three campaigns (verified in recommendFor).
 const CAMPAIGN_CATALOG: Campaign[] = [
     {
         id: "sales",
@@ -93,17 +98,47 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "conversions",
         source: "woocommerce",
         isPro: false,
-        goals: ["sales", "signups", "reviews", "promote-courses", "user-engagement"],
+        goals: ["sales", "signups", "reviews"],
     },
     {
         id: "bar",
         title: __("Notification Bar", "notificationx"),
-        desc: __("Display latest sales, discounts, or announcements to boost sales.", "notificationx"),
+        desc: __("Announce latest sales, discounts, or important updates to every visitor.", "notificationx"),
         img: `${CDN}/2024/09/notification_bar.gif`,
         type: "notification_bar",
         source: "press_bar",
         isPro: false,
-        goals: ["offers", "newsletter", "leads", "webinar", "sales"],
+        goals: ["sales", "leads", "promote-courses", "user-engagement", "reviews"],
+    },
+    {
+        id: "reviews",
+        title: __("Reviews Notification", "notificationx"),
+        desc: __("Showcase real customer reviews and ratings to build trust and credibility.", "notificationx"),
+        img: `${CDN}/2024/09/review_notification.gif`,
+        type: "reviews",
+        source: "wp_reviews",
+        isPro: false,
+        goals: ["reviews", "signups", "sales"],
+    },
+    {
+        id: "exit_intent",
+        title: __("Exit Intent Popup", "notificationx"),
+        desc: __("Catch leaving visitors with a targeted popup and capture leads before they go.", "notificationx"),
+        img: `${CDN}/2026/05/exit-intend-theme-two.jpg`,
+        type: "exit_intent",
+        source: "exit_intent_custom",
+        isPro: false,
+        goals: ["leads", "signups", "promote-courses", "sales"],
+    },
+    {
+        id: "announcement",
+        title: __("Announcement", "notificationx"),
+        desc: __("Show a centered announcement popup to capture leads, promote offers, and grab attention.", "notificationx"),
+        img: `${CDN}/2025/09/notificationAnimation.gif`,
+        type: "popup",
+        source: "popup_notification",
+        isPro: false,
+        goals: ["leads", "signups", "promote-courses", "user-engagement"],
     },
     {
         id: "gdpr",
@@ -113,7 +148,7 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "gdpr",
         source: "gdpr",
         isPro: false,
-        goals: ["leads", "newsletter"],
+        goals: ["leads", "user-engagement"],
     },
     {
         id: "growth",
@@ -133,50 +168,40 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "flashing_tab",
         source: "flashing_tab",
         isPro: true,
-        goals: ["offers", "webinar", "promote-courses", "user-engagement"],
-    },
-    {
-        id: "crossdomain",
-        title: __("Cross-Domain Notice", "notificationx"),
-        desc: __("Display live alerts across multiple WordPress sites to build trust everywhere.", "notificationx"),
-        img: `${CDN}/2024/09/cross_domain.gif`,
-        type: "cross-domain",
-        source: "cross-domain",
-        isPro: true,
-        goals: ["leads", "newsletter", "offers", "user-engagement"],
+        goals: ["sales", "promote-courses", "user-engagement"],
     },
 ];
 
-/**
- * Campaigns always shown first, for every goal selection (the two universal
- * free notifications). The 3rd card onwards is goal-driven.
- */
-const DEFAULT_CAMPAIGN_IDS = ["sales", "bar"];
+/** Fisher–Yates shuffle — returns a new array, leaves the input untouched. */
+const shuffle = <T,>(arr: T[]): T[] => {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+};
 
 /**
- * Recommend campaigns for the selected goals: the two fixed defaults always
- * lead, followed by the goal-matched campaigns (which change with the
- * selection). Padded to a minimum of three so the step always has content; the
- * slider only kicks in when there are more than three (see `StepRecommended`).
+ * Recommend campaigns for the selected goals — purely goal-driven, no fixed
+ * defaults: a campaign shows only when it serves one of the chosen goals. Each
+ * goal maps to at least three related campaigns, so the result is naturally ≥3;
+ * the padding loop is a safety net for any future narrow goal. The list is
+ * shuffled on every call so the Recommended step surfaces a fresh ordering each
+ * visit; the slider only kicks in when there are more than three (see
+ * `StepRecommended`).
  */
 const recommendFor = (goalIds: string[]): Campaign[] => {
-    const defaults = DEFAULT_CAMPAIGN_IDS
-        .map((id) => CAMPAIGN_CATALOG.find((c) => c.id === id))
-        .filter((c): c is Campaign => Boolean(c));
-
-    const matched = CAMPAIGN_CATALOG.filter(
-        (c) =>
-            !DEFAULT_CAMPAIGN_IDS.includes(c.id) &&
-            c.goals.some((g) => goalIds.includes(g))
+    const recs = shuffle(
+        CAMPAIGN_CATALOG.filter((c) => c.goals.some((g) => goalIds.includes(g)))
     );
 
-    const recs = [...defaults, ...matched];
-
-    // Always show at least 3 — pad from the rest of the catalog if needed.
-    for (const c of CAMPAIGN_CATALOG) {
+    // Safety net: guarantee at least three cards even for a narrow selection.
+    for (const c of shuffle(CAMPAIGN_CATALOG)) {
         if (recs.length >= 3) break;
         if (!recs.includes(c)) recs.push(c);
     }
+
     return recs;
 };
 
@@ -205,9 +230,13 @@ const SetupWizard = (props) => {
     };
 
     const toggleGoal = (id: string) =>
-        setGoals((prev) =>
-            prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
-        );
+        setGoals((prev) => {
+            if (!prev.includes(id)) return [...prev, id];
+            // Keep at least one goal selected (mirrors the single-select
+            // business type) — deselecting the last remaining goal is a no-op.
+            if (prev.length === 1) return prev;
+            return prev.filter((g) => g !== id);
+        });
 
     /** Persist completion + the collected onboarding choices (fire-and-forget). */
     const persist = () =>
@@ -369,7 +398,7 @@ const StepWelcome = ({ onStart, onSkip }) => (
 const WizardCardHeader = ({ active }: { active: number }) => (
     <div className="nx-sw__cardhead">
         <header className="nx-sw__brandbar">
-            <span className="nx-sw__wordmark">NotificationX</span>
+            <BrandLogo />
         </header>
         <WizardStepper active={active} />
     </div>
@@ -502,7 +531,9 @@ const SelectableRow = ({
 /* Step 3 — Recommended campaigns                                      */
 /* ------------------------------------------------------------------ */
 const StepRecommended = ({ goals, isProActive, onConfigure, onBack, onNext }) => {
-    const recs = recommendFor(goals);
+    // Shuffle once per visit/goal-change — not on every re-render — so the cards
+    // stay put while the user scrolls but reshuffle when they return to the step.
+    const recs = useMemo(() => recommendFor(goals), [goals]);
     // The slider (arrows + scrolling) only activates when there are more than
     // the three cards that fit a row.
     const hasSlider = recs.length > 3;

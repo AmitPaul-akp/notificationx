@@ -127,8 +127,20 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "notification_bar",
         source: "press_bar",
         isPro: false,
-        // The all-purpose announcer: discounts, CTAs, signups, course promos, updates.
-        goals: ["sales", "leads", "signups", "promote-courses", "user-engagement"],
+        // The all-purpose announcer: discounts, CTAs, signups, updates.
+        goals: ["sales", "leads", "signups", "user-engagement"],
+    },
+    {
+        id: "elearning",
+        title: __("eLearning Notification", "notificationx"),
+        desc: __("Show live course enrollments to build momentum and drive more sign-ups.", "notificationx"),
+        // Local plugin asset (resolved against assets.admin at render — see StepRecommended).
+        img: "images/extensions/themes/elearning/elearning-theme-1.jpg",
+        type: "elearning",
+        source: "tutor",
+        isPro: false,
+        // Recent enrollments promote courses and act as social proof.
+        goals: ["promote-courses", "social-proof"],
     },
     {
         id: "reviews",
@@ -138,8 +150,8 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "reviews",
         source: "wp_reviews",
         isPro: false,
-        // Reviews are social proof, and that trust drives sales.
-        goals: ["social-proof", "sales"],
+        // Reviews are social proof, drive sales, and reassure prospective course buyers.
+        goals: ["social-proof", "sales", "promote-courses"],
     },
     {
         id: "exit_intent",
@@ -149,8 +161,8 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "exit_intent",
         source: "exit_intent_custom",
         isPro: false,
-        // Last-chance capture: leads, signups, a course offer, or a save-the-sale discount.
-        goals: ["leads", "signups", "promote-courses", "sales"],
+        // Last-chance capture: leads, signups, or a save-the-sale discount.
+        goals: ["leads", "signups", "sales"],
     },
     {
         id: "announcement",
@@ -160,8 +172,20 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "popup",
         source: "popup_notification",
         isPro: false,
-        // Centered popup: capture leads/signups, promote a course, or engage with an offer.
-        goals: ["leads", "signups", "promote-courses", "user-engagement"],
+        // Centered popup: capture leads/signups, or engage with an offer.
+        goals: ["leads", "signups", "user-engagement"],
+    },
+    {
+        id: "discount",
+        title: __("Discount Alert", "notificationx"),
+        desc: __("Display limited-time course offers and discounts to nudge instant enrollments.", "notificationx"),
+        // Local plugin asset (resolved against assets.admin at render — see StepRecommended).
+        img: "images/extensions/themes/announcements/theme-1.png",
+        type: "offer_announcement",
+        source: "announcements",
+        isPro: true,
+        // Offer/discount popups drive course sign-ups and sales.
+        goals: ["promote-courses", "sales"],
     },
     {
         id: "growth",
@@ -171,8 +195,8 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "inline",
         source: "woo_inline",
         isPro: true,
-        // Live sales counts are social proof; low-stock urgency drives sales and engagement.
-        goals: ["sales", "social-proof", "user-engagement"],
+        // Live sales counts are social proof; urgency drives sales, engagement, and enrollments.
+        goals: ["sales", "social-proof", "user-engagement", "promote-courses"],
     },
     {
         id: "flashing",
@@ -182,8 +206,8 @@ const CAMPAIGN_CATALOG: Campaign[] = [
         type: "flashing_tab",
         source: "flashing_tab",
         isPro: true,
-        // Re-grabs attention — for a sale, a course promo, or general re-engagement.
-        goals: ["sales", "promote-courses", "user-engagement"],
+        // Re-grabs attention — for a sale or general re-engagement.
+        goals: ["sales", "user-engagement"],
     },
 ];
 
@@ -563,6 +587,12 @@ const StepRecommended = ({ goals, isProActive, onConfigure, onBack, onNext }) =>
     // put while the user scrolls within the step). Deterministic — same goals
     // always yield the same ranked list.
     const recs = useMemo(() => recommendFor(goals), [goals]);
+    // Some campaigns ship their thumbnail with the plugin (relative path) rather
+    // than on the CDN — resolve those against the admin assets base.
+    const builder = useNotificationXContext();
+    const assetsBase = builder?.assets?.admin || "";
+    const imgSrc = (img: string) =>
+        /^https?:\/\//.test(img) ? img : `${assetsBase}${img}`;
     // The slider (arrows + scrolling) only activates when there are more than
     // the three cards that fit a row.
     const hasSlider = recs.length > 3;
@@ -633,7 +663,7 @@ const StepRecommended = ({ goals, isProActive, onConfigure, onBack, onNext }) =>
                             return (
                                 <div key={c.id} className="nx-sw__campaign">
                                     <div className="nx-sw__campaign-media">
-                                        <img src={c.img} alt={c.title} loading="lazy" />
+                                        <img src={imgSrc(c.img)} alt={c.title} loading="lazy" />
                                         <span
                                             className={`nx-sw__campaign-badge ${
                                                 c.isPro ? "is-pro" : "is-free"

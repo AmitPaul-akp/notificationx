@@ -214,7 +214,7 @@ class PluginInsights {
         /**
          * Check URL is set or not.
          */
-        if ( empty( self::API_URL ) ) {
+        if ( defined('NX_DEBUG') || empty( self::API_URL ) ) {
             return;
         }
         /**

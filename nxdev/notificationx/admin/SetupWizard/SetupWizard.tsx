@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import useNotificationXContext from "../../hooks/useNotificationXContext";
 import nxHelper from "../../core/functions";
 import WizardIcon from "./icons";
+import CampaignPreview from "./CampaignPreview";
 import Illustration from "./Illustration";
 import BrandLogo from "../../frontend/themes/helpers/BrandLogo";
 
@@ -587,12 +588,8 @@ const StepRecommended = ({ goals, isProActive, onConfigure, onBack, onNext }) =>
     // put while the user scrolls within the step). Deterministic — same goals
     // always yield the same ranked list.
     const recs = useMemo(() => recommendFor(goals), [goals]);
-    // Some campaigns ship their thumbnail with the plugin (relative path) rather
-    // than on the CDN — resolve those against the admin assets base.
-    const builder = useNotificationXContext();
-    const assetsBase = builder?.assets?.admin || "";
-    const imgSrc = (img: string) =>
-        /^https?:\/\//.test(img) ? img : `${assetsBase}${img}`;
+    // Each campaign renders a built HTML/CSS mockup of its notification type
+    // (see CampaignPreview) instead of a marketing GIF — crisper and animatable.
     // The slider (arrows + scrolling) only activates when there are more than
     // the three cards that fit a row.
     const hasSlider = recs.length > 3;
@@ -663,7 +660,7 @@ const StepRecommended = ({ goals, isProActive, onConfigure, onBack, onNext }) =>
                             return (
                                 <div key={c.id} className="nx-sw__campaign">
                                     <div className="nx-sw__campaign-media">
-                                        <img src={imgSrc(c.img)} alt={c.title} loading="lazy" />
+                                        <CampaignPreview type={c.type} />
                                         <span
                                             className={`nx-sw__campaign-badge ${
                                                 c.isPro ? "is-pro" : "is-free"

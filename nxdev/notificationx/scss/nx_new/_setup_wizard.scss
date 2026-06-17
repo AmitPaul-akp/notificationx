@@ -1205,11 +1205,715 @@ body.nx-setup-wizard-active {
         }
     }
 
+    // ---- Browser-window shape behind each Recommended preview ---------
+    // Just the browser silhouette — a window bar with the three traffic-light
+    // dots and an empty address-bar pill — over a faint skeleton page. No tab
+    // title / URL / progress bar. The notification preview overlays the page
+    // region (see &__preview). Purely decorative — see CampaignPreview.tsx.
+    // The Flashing-Tab type opts out (it renders its own browser).
+    &__viewport {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(180deg, #fdfdff 0%, #f4f5fc 100%);
+    }
+
+    &__cb-chrome {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 12px;
+        background: #e9eaf3;
+        border-bottom: 1px solid rgba(23, 15, 73, 0.06);
+    }
+
+    &__cb-dots {
+        display: flex;
+        gap: 5px;
+        flex-shrink: 0;
+
+        i {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+
+            &:nth-child(1) { background: #ff6f6f; }
+            &:nth-child(2) { background: #ffc24b; }
+            &:nth-child(3) { background: #44d07b; }
+        }
+    }
+
+    // Empty address-bar pill — a shape only, no URL text.
+    &__cb-omni {
+        flex: 1;
+        min-width: 0;
+        height: 14px;
+        border-radius: 999px;
+        background: #fff;
+        box-shadow: inset 0 0 0 1px rgba(23, 15, 73, 0.06);
+    }
+
+    // Page region under the chrome — the notification preview overlays this.
+    &__cb-page {
+        position: relative;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    // Faint store-page wireframe behind the notification.
+    &__cb-page-skel {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding: 12px 14px;
+        opacity: 0.5;
+
+        .nx-sw__cb-sk {
+            height: 7px;
+            border-radius: 4px;
+            background: #dfe3f4;
+
+            &--title {
+                width: 46%;
+                height: 10px;
+            }
+            &--w80 {
+                width: 80%;
+            }
+        }
+
+        .nx-sw__cb-sk-grid {
+            margin-top: 4px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .nx-sw__cb-sk-thumb {
+            height: 42px;
+            border-radius: 8px;
+            background: #e4e7f6;
+        }
+    }
+
+    // ---- Recommended-card previews ------------------------------------
+    // Built HTML/CSS mockups of each notification Type (see CampaignPreview.tsx),
+    // shown in the campaign-media stage instead of marketing GIFs. Each mirrors
+    // the real frontend theme so the preview is crisp and ready to animate.
+    // Sizes are tuned to read well inside the ~16:10 media panel. For every type
+    // except Flashing-Tab the preview is confined to the browser-chrome page
+    // region (its offset parent is &__cb-page); Flashing-Tab fills the media.
+    &__preview {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+        font-family: inherit;
+
+        // Shared notification card shell (sales / reviews / growth / elearning…).
+        .cp-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 248px;
+            padding: 11px 13px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 22px rgba(23, 15, 73, 0.14);
+        }
+
+        .cp-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .cp-row {
+            font-size: 11px;
+            line-height: 1.3;
+            color: $sw-text;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            strong {
+                color: $sw-h;
+                font-weight: 700;
+            }
+
+            &--title {
+                color: $sw-h;
+            }
+            &--strong {
+                font-weight: 700;
+                color: $sw-h;
+                font-size: 11.5px;
+            }
+            &--muted {
+                color: $sw-muted;
+                font-size: 10px;
+            }
+            &--sub .cp-dot {
+                margin: 0 3px;
+                color: $sw-muted;
+            }
+            // Allow this line to wrap (e.g. the announcement modal blurb).
+            &--wrap {
+                white-space: normal;
+                line-height: 1.4;
+            }
+        }
+
+        // Initials avatar (gradient disc).
+        .cp-avatar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #897fff, #4a3aff);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+
+            &--lg {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+        }
+
+        // Verified trust badge — keep it on a single line.
+        .cp-verified {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 1px;
+            font-size: 9.5px;
+            font-weight: 600;
+            color: #1aab5c;
+            white-space: nowrap;
+
+            svg {
+                flex-shrink: 0;
+            }
+        }
+
+        // "Buy now ›" style inline CTA.
+        .cp-cta {
+            flex-shrink: 0;
+            align-self: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0c8a4b;
+            white-space: nowrap;
+        }
+
+        // Star rating (reviews).
+        .cp-stars {
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: #ffb000;
+        }
+
+        // Skeleton lines (growth / discount / popups).
+        .cp-skel {
+            display: block;
+            height: 6px;
+            border-radius: 3px;
+            background: #d9def2;
+
+            &--w90 {
+                width: 90%;
+            }
+            &--w80 {
+                width: 80%;
+            }
+            &--w70 {
+                width: 70%;
+            }
+            &--w60 {
+                width: 60%;
+            }
+        }
+
+        // ---------- Reviews (pill-shaped card) ----------
+        .cp-card--reviews {
+            border-radius: 999px;
+            padding: 9px 18px 9px 10px;
+        }
+
+        // ---------- Growth Alert (inline) — mirrors the real Inline theme:
+        // a rounded product thumb with a teal shopping-bag corner badge, the
+        // sales count emphasised in teal, then a muted period line. No CTA.
+        .cp-card--growth {
+            align-items: center;
+            max-width: 256px;
+
+            .cp-prod {
+                position: relative;
+                flex-shrink: 0;
+                width: 52px;
+                height: 52px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #f1f3fb;
+                border-radius: 10px;
+            }
+            // Teal shopping-bag badge clipped to the thumbnail's top-left corner.
+            .cp-prod-badge {
+                position: absolute;
+                top: -8px;
+                left: -8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                background: #45c9b1;
+                border: 2px solid #fff;
+                color: #fff;
+                box-shadow: 0 4px 8px rgba(69, 201, 177, 0.4);
+            }
+            .cp-imgglyph {
+                width: 32px;
+                height: 28px;
+            }
+            .cp-growth-r1 {
+                font-size: 12px;
+                line-height: 1.35;
+                color: #1d1f2b;
+            }
+            // Sales count highlighted in the theme's teal accent.
+            .cp-num {
+                color: #45c9b1;
+                font-weight: 700;
+            }
+            .cp-growth-r2 {
+                font-size: 11px;
+                line-height: 1.35;
+                color: #7c8db5;
+
+                strong {
+                    color: #7c8db5;
+                    font-weight: 600;
+                }
+            }
+        }
+
+        // ---------- eLearning (WordPress-style W avatar) ----------
+        .cp-wp {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid #21759b;
+            color: #21759b;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: Georgia, "Times New Roman", serif;
+        }
+
+        // ---------- Notification bar (compact: timer · message · CTA) ----------
+        .cp-bar {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            width: 100%;
+            padding: 6px 8px;
+            background: #fff;
+            border-radius: 9px;
+            box-shadow: 0 8px 22px rgba(23, 15, 73, 0.14);
+            font-size: 10px;
+
+            &__timer {
+                flex-shrink: 0;
+                padding: 3px 5px;
+                background: #1d1f2b;
+                color: #fff;
+                border-radius: 4px;
+                font-size: 9px;
+                font-weight: 700;
+                font-variant-numeric: tabular-nums;
+                white-space: nowrap;
+            }
+            &__text {
+                flex: 1;
+                min-width: 0;
+                color: $sw-h;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+                strong {
+                    color: #e2483d;
+                    font-weight: 700;
+                }
+            }
+            &__cta {
+                flex-shrink: 0;
+                padding: 4px 8px;
+                background: #1d1f2b;
+                color: #fff;
+                border-radius: 5px;
+                font-weight: 700;
+                white-space: nowrap;
+            }
+        }
+
+        // ---------- Discount badge ----------
+        .cp-card--discount {
+            align-items: stretch;
+            gap: 12px;
+            max-width: 252px;
+
+            .cp-disc-badge {
+                position: relative;
+                flex-shrink: 0;
+                width: 58px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 14px 0 10px;
+                background: linear-gradient(160deg, #5b3df5, #4a1fc9);
+                border-radius: 8px;
+                color: #fff;
+            }
+            .cp-disc-tag {
+                position: absolute;
+                top: -8px;
+                padding: 2px 7px;
+                background: #897fff;
+                border-radius: 4px;
+                font-size: 8px;
+                font-weight: 700;
+                white-space: nowrap;
+            }
+            .cp-disc-pct {
+                font-size: 19px;
+                font-weight: 800;
+                line-height: 1;
+            }
+            .cp-disc-off {
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.06em;
+            }
+        }
+
+        // ---------- Exit-intent (two-pane popup) ----------
+        .cp-popup {
+            display: flex;
+            width: 100%;
+            max-width: 264px;
+            // Fill the chrome page region but cap so it never overflows the
+            // smaller media panel; the panes flex to whatever height remains.
+            height: 100%;
+            max-height: 120px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 14px 30px rgba(23, 15, 73, 0.2);
+
+            &__left {
+                flex: 1.25;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 5px;
+                padding: 12px 10px;
+                background: radial-gradient(120% 120% at 30% 0%, #232140 0%, #14132a 70%);
+                text-align: center;
+            }
+            &__tag {
+                padding: 2px 10px;
+                background: #ec3a83;
+                border-radius: 999px;
+                color: #fff;
+                font-size: 7px;
+                font-weight: 800;
+                letter-spacing: 0.1em;
+            }
+            &__big {
+                margin-top: 1px;
+                color: #fff;
+                font-size: 26px;
+                font-weight: 800;
+                line-height: 1;
+                letter-spacing: -0.01em;
+            }
+            &__sub {
+                color: #9b98c0;
+                font-size: 7px;
+                font-weight: 600;
+                letter-spacing: 0.16em;
+            }
+            &__cta {
+                margin-top: 5px;
+                padding: 7px 14px;
+                background: linear-gradient(90deg, #ec3a83, #8b5cf6);
+                border-radius: 7px;
+                color: #fff;
+                font-size: 9px;
+                font-weight: 700;
+                box-shadow: 0 5px 12px rgba(140, 60, 180, 0.4);
+            }
+            &__no {
+                color: #6f6c8f;
+                font-size: 7px;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-decoration: underline;
+                text-underline-offset: 2px;
+            }
+            &__right {
+                position: relative;
+                flex: 1;
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                overflow: hidden;
+                background: linear-gradient(165deg, #fbeef6 0%, #eef1fb 100%);
+            }
+            &__art {
+                width: 100%;
+                height: 92%;
+            }
+            &__close {
+                position: absolute;
+                top: 6px;
+                right: 6px;
+                width: 16px;
+                height: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #fff;
+                border-radius: 50%;
+                color: $sw-h;
+                font-size: 11px;
+                line-height: 1;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+            }
+        }
+
+        // ---------- Announcement (centered modal) ----------
+        .cp-modal {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+
+            &__card {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                gap: 7px;
+                width: 100%;
+                max-width: 210px;
+                padding: 16px 16px 14px;
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 12px 30px rgba(23, 15, 73, 0.18);
+            }
+            &__close {
+                position: absolute;
+                top: 8px;
+                right: 10px;
+                color: $sw-muted;
+                font-size: 13px;
+                line-height: 1;
+            }
+            &__cta {
+                margin-top: 4px;
+                align-self: flex-start;
+                padding: 6px 14px;
+                background: $sw-accent;
+                border-radius: 6px;
+                color: #fff;
+                font-size: 10px;
+                font-weight: 700;
+            }
+        }
+
+        // ---------- Flashing tab (browser window) ----------
+        .cp-browser {
+            width: 100%;
+            max-width: 250px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 10px 26px rgba(23, 15, 73, 0.16);
+
+            &__bar {
+                display: flex;
+                gap: 4px;
+                padding: 7px 8px 0;
+                background: #e7e9f4;
+            }
+            &__tab {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                max-width: 120px;
+                padding: 5px 9px;
+                background: #f6f7fc;
+                border-radius: 6px 6px 0 0;
+                font-size: 9px;
+                color: $sw-muted;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+                // The current (foreground) tab — solid white, raised.
+                &.is-active {
+                    background: #fff;
+                    color: $sw-h;
+                    font-weight: 700;
+                }
+
+                // Your site's tab while the visitor is away: stays inactive,
+                // but its title goes bold and flashes (see nxcp-tabflip below).
+                &.is-flashing {
+                    font-weight: 700;
+                }
+            }
+            &__fav {
+                flex-shrink: 0;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #ff4d63;
+            }
+            &__page {
+                display: flex;
+                flex-direction: column;
+                gap: 7px;
+                padding: 14px 14px 18px;
+            }
+        }
+
+        // ----------------------- Motion --------------------------------
+        // Each preview runs the FULL notification lifecycle on an endless loop,
+        // exactly like the old marketing GIFs: the whole element flies in, holds
+        // on screen for a beat, then leaves — and repeats forever. The entrance
+        // direction matches how that notification type really appears (corner
+        // cards slide up from the left, the bar drops from the top, popups zoom
+        // from the centre). In-card accents (counts, stars, CTAs) keep ticking
+        // during the "hold" so the element feels alive while it's shown.
+        // Durations differ per type so the three cards never pulse in lockstep.
+
+        // Corner notifications — slide in from the bottom-left, hold, slide out.
+        .cp-card--sales {
+            animation: nxcp-cycle-corner 4.6s ease-in-out infinite;
+        }
+        .cp-card--reviews {
+            animation: nxcp-cycle-corner 5s ease-in-out infinite;
+        }
+        .cp-card--growth {
+            animation: nxcp-cycle-corner 5.4s ease-in-out infinite;
+        }
+        .cp-card--elearning {
+            animation: nxcp-cycle-corner 4.8s ease-in-out infinite;
+        }
+        .cp-card--discount {
+            animation: nxcp-cycle-corner 5.2s ease-in-out infinite;
+        }
+
+        // Notification bar — drops down from the top, holds, retracts.
+        .cp-bar {
+            animation: nxcp-cycle-bar 5s ease-in-out infinite;
+        }
+
+        // Popups — zoom in from the centre, hold, zoom out.
+        .cp-popup {
+            animation: nxcp-cycle-pop 4.8s ease-in-out infinite;
+        }
+        .cp-modal {
+            transform-origin: center;
+            animation: nxcp-cycle-pop 5s ease-in-out infinite;
+        }
+        .cp-browser {
+            animation: nxcp-cycle-pop 5.4s ease-in-out infinite;
+        }
+
+        // -- In-card accents (play during the on-screen "hold" phase) --
+        .cp-card--growth {
+            .cp-num {
+                display: inline-block;
+                animation: nxcp-beat 1.4s ease-in-out infinite;
+            }
+        }
+        .cp-card--sales .cp-cta {
+            display: inline-block;
+            animation: nxcp-pulse 1.3s ease-in-out infinite;
+        }
+        .cp-card--reviews .cp-stars {
+            display: inline-block;
+            transform-origin: left center;
+            animation: nxcp-pulse 1.4s ease-in-out infinite;
+        }
+        .cp-bar__cta {
+            display: inline-block;
+            animation: nxcp-pulse 1.3s ease-in-out infinite;
+        }
+        .cp-disc-tag {
+            animation: nxcp-bounce 1.1s ease-in-out infinite;
+        }
+        .cp-popup__cta {
+            display: inline-block;
+            animation: nxcp-glow 1.4s ease-in-out infinite;
+        }
+        .cp-popup__art {
+            transform-origin: 50% 100%;
+            animation: nxcp-sway 2.4s ease-in-out infinite;
+        }
+        .cp-modal__cta {
+            display: inline-block;
+            animation: nxcp-pulse 1.3s ease-in-out infinite;
+        }
+
+        // Flashing tab — favicon blinks + tab flips colour the whole time.
+        .cp-browser__fav {
+            animation: nxcp-flash 0.8s steps(1, end) infinite;
+        }
+        .cp-browser__tab.is-flashing {
+            animation: nxcp-tabflip 1s steps(1, end) infinite;
+        }
+    }
+
+    // A notification bar belongs at the very top of the page, snug under the
+    // browser toolbar — pin it there instead of floating it in the middle.
+    &__preview--notification_bar {
+        align-items: flex-start;
+        padding-top: 10px;
+    }
+
     &__campaign-badge {
         position: absolute;
+        // top-right so it clears the browser tab strip at the top-left
         top: 10px;
-        left: 10px;
-        z-index: 1;
+        right: 10px;
+        z-index: 3;
         padding: 3px 11px;
         border-radius: 999px;
         font-size: 11px;
@@ -1397,6 +2101,13 @@ body.nx-setup-wizard-active {
             opacity: 1 !important;
             transform: none !important;
         }
+        // Recommended-card previews: drop all motion, leave them resting visible.
+        .nx-sw__preview > *,
+        .nx-sw__preview * {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+        }
     }
 }
 
@@ -1488,5 +2199,209 @@ body.nx-setup-wizard-active {
     50.01%,
     100% {
         opacity: 0.25;
+    }
+}
+
+// ===================================================================
+// Recommended-card preview animations (see CampaignPreview.tsx).
+// Kept short & low-amplitude so three looping cards read as "alive"
+// rather than restless. Disabled under prefers-reduced-motion above.
+// ===================================================================
+
+// Entrance: the mock pops up into place.
+@keyframes nxcp-pop {
+    0% {
+        opacity: 0;
+        transform: translateY(14px) scale(0.94);
+    }
+    60% {
+        transform: translateY(-2px) scale(1.008);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+// Gentle scale pulse for CTAs / focal elements.
+@keyframes nxcp-pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.06);
+    }
+}
+
+// Stronger "beat" for the growth count.
+@keyframes nxcp-beat {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    30% {
+        transform: scale(1.18);
+    }
+}
+
+// Opacity blink (urgency text, flashing favicon).
+@keyframes nxcp-flash {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
+// Countdown "tick" — a subtler opacity dip.
+@keyframes nxcp-tick {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.62;
+    }
+}
+
+// Little vertical bounce (the "Grab Now" tab).
+@keyframes nxcp-bounce {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-2.5px);
+    }
+}
+
+// Glowing, slightly growing CTA (exit-intent).
+@keyframes nxcp-glow {
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 5px 12px rgba(140, 60, 180, 0.4);
+    }
+    50% {
+        transform: scale(1.04);
+        box-shadow: 0 7px 18px rgba(236, 58, 131, 0.6);
+    }
+}
+
+// Shopping bags sway.
+@keyframes nxcp-sway {
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(-4deg);
+    }
+}
+
+// Modal card floats.
+@keyframes nxcp-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+// Flashing tab flips colour to re-grab attention — on an INACTIVE tab, so it
+// alternates between the dimmed resting state and an alert tint.
+@keyframes nxcp-tabflip {
+    0%,
+    49% {
+        background: #f6f7fc;
+        color: $sw-muted;
+    }
+    50%,
+    100% {
+        background: #ffe3e7;
+        color: #e23b50;
+    }
+}
+
+// ---- Full-element lifecycle loops (fly in → hold → leave → repeat) ----
+
+// Corner notifications: slide up from the lower-left with a tiny overshoot,
+// hold most of the cycle, then slide back out and pause before repeating.
+@keyframes nxcp-cycle-corner {
+    0% {
+        opacity: 0;
+        transform: translate(-30px, 14px) scale(0.9);
+    }
+    8% {
+        opacity: 1;
+        transform: translate(3px, -1px) scale(1.015);
+    }
+    13% {
+        transform: translate(0, 0) scale(1);
+    }
+    78% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+    }
+    88% {
+        opacity: 0;
+        transform: translate(-30px, 14px) scale(0.94);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-30px, 14px) scale(0.9);
+    }
+}
+
+// Notification bar: drop down from above, hold, retract upward.
+@keyframes nxcp-cycle-bar {
+    0% {
+        opacity: 0;
+        transform: translateY(-130%);
+    }
+    9% {
+        opacity: 1;
+        transform: translateY(6%);
+    }
+    14% {
+        transform: translateY(0);
+    }
+    80% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    90%,
+    100% {
+        opacity: 0;
+        transform: translateY(-130%);
+    }
+}
+
+// Popups / browser: zoom in from the centre, hold, zoom back out.
+@keyframes nxcp-cycle-pop {
+    0% {
+        opacity: 0;
+        transform: scale(0.78);
+    }
+    9% {
+        opacity: 1;
+        transform: scale(1.025);
+    }
+    14% {
+        transform: scale(1);
+    }
+    80% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    90%,
+    100% {
+        opacity: 0;
+        transform: scale(0.82);
     }
 }

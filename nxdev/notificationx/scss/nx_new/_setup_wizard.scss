@@ -274,6 +274,13 @@ body.nx-setup-wizard-active {
         }
     }
 
+    // Keeps the Back button's footprint (so the step counter stays centered)
+    // while hiding it — used on Step 2 after consent so the user can't go back.
+    &__btn--hidden {
+        visibility: hidden;
+        pointer-events: none;
+    }
+
     &__step-count {
         font-size: 13px;
         color: $sw-muted;
@@ -485,18 +492,19 @@ body.nx-setup-wizard-active {
         gap: 28px;
     }
 
+    
     &__cta {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 14px 32px;
+        padding: 10px 32px;
         border: none;
         border-radius: 8px;
-        background: $sw-brand;
+        background: #5129e6;
         color: #fff;
         font-family: "Inter", sans-serif;
-        font-weight: 600;
-        font-size: 18px;
+        font-weight: 500;
+        font-size: 16px;
         line-height: 1.4;
         cursor: pointer;
         transition: background 0.15s ease;

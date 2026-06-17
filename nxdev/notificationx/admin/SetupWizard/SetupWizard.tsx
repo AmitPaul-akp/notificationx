@@ -542,7 +542,7 @@ const StepBusiness = ({
         </div>
 
         <div className="nx-sw__panel-footer">
-            <NavRow step={2} onBack={onBack} onNext={onNext} />
+            <NavRow step={2} onBack={onBack} onNext={onNext} hideBack />
         </div>
     </section>
 );
@@ -797,9 +797,16 @@ const StepFinish = ({ business, goals = [], busy, onDashboard, onCreate }) => (
 /* ------------------------------------------------------------------ */
 /* Shared back / continue row (steps 2)                                */
 /* ------------------------------------------------------------------ */
-const NavRow = ({ step, onBack, onNext }) => (
+const NavRow = ({ step, onBack, onNext, hideBack = false }) => (
     <div className="nx-sw__nav">
-        <button className="nx-sw__btn nx-sw__btn--ghost" onClick={onBack}>
+        <button
+            className={`nx-sw__btn nx-sw__btn--ghost${
+                hideBack ? " nx-sw__btn--hidden" : ""
+            }`}
+            onClick={hideBack ? undefined : onBack}
+            aria-hidden={hideBack || undefined}
+            tabIndex={hideBack ? -1 : undefined}
+        >
             <WizardIcon name="arrow" size={16} className="nx-sw__arrow-left" />
             {__("Back", "notificationx")}
         </button>

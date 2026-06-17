@@ -1,5 +1,5 @@
 import { __ } from "@wordpress/i18n";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 /**
  * Static HTML/CSS mockups of each NotificationX notification "Type", shown on
@@ -37,15 +37,6 @@ const Verified = () => (
         </svg>
         {__("Verified by NotificationX", "notificationx")}
     </span>
-);
-
-/** Generic image-placeholder glyph (mountain + sun) used in the growth mockup. */
-const ImageGlyph = () => (
-    <svg viewBox="0 0 48 40" className="cp-imgglyph" aria-hidden="true">
-        <rect x="1" y="1" width="46" height="38" rx="4" fill="#dfe4f7" />
-        <circle cx="15" cy="14" r="4.5" fill="#9fb4ef" />
-        <path d="M6 34l11-12 8 8 6-6 11 10z" fill="#9fb4ef" />
-    </svg>
 );
 
 const SalesPreview = () => (
@@ -102,25 +93,55 @@ const ShoppingBag = () => (
     </svg>
 );
 
-const GrowthPreview = () => (
-    <div className="cp-card cp-card--growth">
-        <div className="cp-prod">
-            <span className="cp-prod-badge" aria-hidden="true">
+/** Live counter that ticks up from `from` to `to`, holds at the top, then
+ * quietly restarts — the only motion in the Growth Alert (the card itself
+ * stays put). Respects reduced-motion. */
+const useCountUp = (from: number, to: number, stepMs = 110, holdMs = 1800) => {
+    const [n, setN] = useState(to);
+    useEffect(() => {
+        const reduce =
+            typeof window !== "undefined" &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce) {
+            setN(to);
+            return;
+        }
+        let v = from;
+        let timer: ReturnType<typeof setTimeout>;
+        const tick = () => {
+            setN(v);
+            if (v >= to) {
+                timer = setTimeout(() => {
+                    v = from;
+                    tick();
+                }, holdMs);
+            } else {
+                v += 1;
+                timer = setTimeout(tick, stepMs);
+            }
+        };
+        tick();
+        return () => clearTimeout(timer);
+    }, [from, to, stepMs, holdMs]);
+    return n;
+};
+
+const GrowthPreview = () => {
+    const count = useCountUp(826, 839);
+    return (
+        <div className="cp-card cp-card--growth">
+            <span className="cp-growth-ico" aria-hidden="true">
                 <ShoppingBag />
             </span>
-            <ImageGlyph />
+            <p className="cp-growth-text">
+                <strong className="cp-num">{count}</strong>{" "}
+                {__("sold in last", "notificationx")}{" "}
+                <strong className="cp-growth-em">7 days</strong>
+            </p>
         </div>
-        <div className="cp-lines">
-            <div className="cp-growth-r1">
-                <strong className="cp-num">739</strong>{" "}
-                {__("people purchased", "notificationx")}
-            </div>
-            <div className="cp-growth-r2">
-                {__("in last", "notificationx")} <strong>{__("7 days", "notificationx")}</strong>
-            </div>
-        </div>
-    </div>
-);
+    );
+};
 
 const ElearningPreview = () => (
     <div className="cp-card cp-card--elearning">
@@ -274,6 +295,30 @@ const PageSkeleton = () => (
     </div>
 );
 
+/** Growth Alert fires inline on a product-details page, right above the
+ * Add-to-Cart button — so we render the whole product page (gallery + meta
+ * skeleton) with the live Growth Alert sitting in that exact spot. */
+const GrowthAlertView = () => (
+    <div className="nx-sw__viewport nx-sw__viewport--inline">
+        <BrowserChrome />
+        <div className="nx-sw__cb-page">
+            <div className="nx-sw__cb-pdp">
+                <span className="nx-sw__cb-pdp-img" aria-hidden="true" />
+                <div className="nx-sw__cb-pdp-info">
+                    <span className="nx-sw__cb-sk nx-sw__cb-sk--title" aria-hidden="true" />
+                    <span className="nx-sw__cb-sk nx-sw__cb-sk--price" aria-hidden="true" />
+                    {/* the inline Growth Alert — sits in the info column, right
+                        above the Add-to-Cart button */}
+                    <div className="nx-sw__preview nx-sw__preview--inline">
+                        <GrowthPreview />
+                    </div>
+                    <span className="nx-sw__cb-pdp-btn" aria-hidden="true" />
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
 const PREVIEWS: Record<string, React.FC> = {
     conversions: SalesPreview,
     reviews: ReviewsPreview,
@@ -297,6 +342,11 @@ const CampaignPreview = ({ type }: { type: string }) => {
                 <Preview />
             </div>
         );
+    }
+
+    // Growth Alert is rendered inline within a full product-details page.
+    if (type === "inline") {
+        return <GrowthAlertView />;
     }
 
     return (

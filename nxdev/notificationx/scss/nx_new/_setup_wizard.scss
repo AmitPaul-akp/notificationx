@@ -1300,6 +1300,60 @@ body.nx-setup-wizard-active {
         }
     }
 
+    // Product-details-page wireframe behind the Growth Alert: a gallery image
+    // on the left, then a right column with title / price, the live Growth
+    // Alert, and an Add-to-Cart button — the alert sits inline in that column.
+    &__cb-pdp {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        gap: 11px;
+        padding: 11px 13px;
+
+        // gallery image (left)
+        .nx-sw__cb-pdp-img {
+            flex: 0 0 34%;
+            border-radius: 9px;
+            background: #e4e7f6;
+            opacity: 0.6;
+        }
+        // info column (right)
+        .nx-sw__cb-pdp-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            padding-top: 2px;
+        }
+        // title / price skeleton lines (dimmed back behind the alert)
+        .nx-sw__cb-pdp-info > .nx-sw__cb-sk {
+            height: 7px;
+            border-radius: 4px;
+            background: #dfe3f4;
+            opacity: 0.6;
+
+            &--title {
+                width: 85%;
+                height: 10px;
+            }
+            &--price {
+                width: 45%;
+                height: 9px;
+                background: #cfd5ee;
+            }
+        }
+        // Add-to-Cart button skeleton, pinned to the bottom of the column
+        .nx-sw__cb-pdp-btn {
+            margin-top: auto;
+            width: 100%;
+            height: 15px;
+            border-radius: 6px;
+            background: #d3d8ef;
+            opacity: 0.6;
+        }
+    }
+
     // ---- Recommended-card previews ------------------------------------
     // Built HTML/CSS mockups of each notification Type (see CampaignPreview.tsx),
     // shown in the campaign-media stage instead of marketing GIFs. Each mirrors
@@ -1311,8 +1365,11 @@ body.nx-setup-wizard-active {
         position: absolute;
         inset: 0;
         display: flex;
-        align-items: center;
-        justify-content: center;
+        // Default: corner notifications (sales / reviews / eLearning / growth /
+        // discount) rest in the bottom-left, like on a real site. Modals and
+        // the bar override this below.
+        align-items: flex-end;
+        justify-content: flex-start;
         padding: 12px;
         font-family: inherit;
 
@@ -1455,63 +1512,54 @@ body.nx-setup-wizard-active {
             padding: 9px 18px 9px 10px;
         }
 
-        // ---------- Growth Alert (inline) — mirrors the real Inline theme:
-        // a rounded product thumb with a teal shopping-bag corner badge, the
-        // sales count emphasised in teal, then a muted period line. No CTA.
+        // ---------- Growth Alert (inline) — compact product card whose sales
+        // count ticks up live (see useCountUp); the product name + meta are
+        // skeleton placeholders so the climbing number is the focal point.
+        // ---------- Growth Alert (inline) — a small inline notice that sits in
+        // the product page above Add-to-Cart. Reads "839 people purchased
+        // iPhone 17 in last 7 Days" with the count ticking up live (useCountUp).
         .cp-card--growth {
             align-items: center;
-            max-width: 256px;
+            gap: 7px;
+            max-width: none;
+            padding: 6px 9px;
 
-            .cp-prod {
-                position: relative;
+            // Compact teal shopping-bag icon (replaces the product thumbnail).
+            .cp-growth-ico {
                 flex-shrink: 0;
-                width: 52px;
-                height: 52px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: #f1f3fb;
-                border-radius: 10px;
-            }
-            // Teal shopping-bag badge clipped to the thumbnail's top-left corner.
-            .cp-prod-badge {
-                position: absolute;
-                top: -8px;
-                left: -8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 22px;
-                height: 22px;
+                width: 20px;
+                height: 20px;
                 border-radius: 50%;
                 background: #45c9b1;
-                border: 2px solid #fff;
                 color: #fff;
-                box-shadow: 0 4px 8px rgba(69, 201, 177, 0.4);
+                box-shadow: 0 3px 6px rgba(69, 201, 177, 0.35);
             }
-            .cp-imgglyph {
-                width: 32px;
-                height: 28px;
-            }
-            .cp-growth-r1 {
-                font-size: 12px;
-                line-height: 1.35;
+            // Single line, small — truncates rather than wrapping.
+            .cp-growth-text {
+                flex: 1;
+                min-width: 0;
+                margin: 0;
+                font-size: 8.5px;
+                line-height: 1.3;
                 color: #1d1f2b;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
-            // Sales count highlighted in the theme's teal accent.
+            // The live, climbing sales count — the focal element.
             .cp-num {
                 color: #45c9b1;
-                font-weight: 700;
+                font-size: 12px;
+                font-weight: 800;
+                // fixed-width digits so the climbing number never jiggles layout
+                font-variant-numeric: tabular-nums;
             }
-            .cp-growth-r2 {
-                font-size: 11px;
-                line-height: 1.35;
-                color: #7c8db5;
-
-                strong {
-                    color: #7c8db5;
-                    font-weight: 600;
-                }
+            .cp-growth-em {
+                font-weight: 700;
+                color: #1d1f2b;
             }
         }
 
@@ -1829,9 +1877,8 @@ body.nx-setup-wizard-active {
         .cp-card--reviews {
             animation: nxcp-cycle-corner 5s ease-in-out infinite;
         }
-        .cp-card--growth {
-            animation: nxcp-cycle-corner 5.4s ease-in-out infinite;
-        }
+        // Growth Alert intentionally has NO fly-in/out cycle — it stays shown
+        // the whole time; only its sales count ticks up (see useCountUp).
         .cp-card--elearning {
             animation: nxcp-cycle-corner 4.8s ease-in-out infinite;
         }
@@ -1857,12 +1904,6 @@ body.nx-setup-wizard-active {
         }
 
         // -- In-card accents (play during the on-screen "hold" phase) --
-        .cp-card--growth {
-            .cp-num {
-                display: inline-block;
-                animation: nxcp-beat 1.4s ease-in-out infinite;
-            }
-        }
         .cp-card--sales .cp-cta {
             display: inline-block;
             animation: nxcp-pulse 1.3s ease-in-out infinite;
@@ -1906,6 +1947,25 @@ body.nx-setup-wizard-active {
     &__preview--notification_bar {
         align-items: flex-start;
         padding-top: 10px;
+    }
+
+    // Modals (exit-intent, announcement) and the flashing-tab browser mock are
+    // centred in the page rather than anchored to a corner.
+    &__preview--exit_intent,
+    &__preview--popup,
+    &__preview--flashing_tab {
+        align-items: center;
+        justify-content: center;
+    }
+
+    // The inline Growth Alert flows inside the product page's info column
+    // (above Add-to-Cart) rather than floating in a corner — drop the absolute
+    // overlay positioning. Declared after the base &__preview so it wins.
+    &__preview--inline {
+        position: static;
+        display: block;
+        padding: 0;
+        flex-shrink: 0;
     }
 
     &__campaign-badge {

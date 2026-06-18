@@ -1,5 +1,5 @@
 import { __ } from "@wordpress/i18n";
-import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import useNotificationXContext from "../../hooks/useNotificationXContext";
 import nxHelper from "../../core/functions";
 import WizardIcon from "./icons";
@@ -587,29 +587,65 @@ const StepRecommended = ({ goals, isProActive, onConfigure, onBack, onNext }) =>
     // Re-filter whenever the selected goals change (memoised so the cards stay
     // put while the user scrolls within the step). Deterministic — same goals
     // always yield the same ranked list.
-    const recs = useMemo(() => recommendFor(goals), [goals]);
+    const baseRecs = useMemo(() => recommendFor(goals), [goals]);
     // Each campaign renders a built HTML/CSS mockup of its notification type
     // (see CampaignPreview) instead of a marketing GIF — crisper and animatable.
     // The slider (arrows + scrolling) only activates when there are more than
     // the three cards that fit a row.
-    const hasSlider = recs.length > 3;
+    const hasSlider = baseRecs.length > 3;
+    // Seamless infinite loop: render three identical copies of the track and
+    // keep the viewport parked in the middle copy. Each arrow click smooth-
+    // scrolls one card; once that scroll settles we instantly hop back by one
+    // copy-width whenever we've crossed into an outer clone. The clones are
+    // identical and the hop is instant, so the loop looks continuous and the
+    // arrows work forever in both directions.
+    const recs = hasSlider ? [...baseRecs, ...baseRecs, ...baseRecs] : baseRecs;
     const viewportRef = useRef<HTMLDivElement>(null);
-    // atStart/atEnd disable the arrows at the ends of the track.
-    const [edges, setEdges] = useState({ atStart: true, atEnd: false });
+    const settleTimer = useRef<ReturnType<typeof setTimeout>>();
 
-    const updateEdges = useCallback(() => {
+    /**
+     * Set scrollLeft without animating. The viewport has `scroll-behavior:
+     * smooth` in CSS, so a plain assignment would glide across the whole hop
+     * (the visible "slide back to start"); overriding it to `auto` for the
+     * assignment keeps the re-center invisible.
+     */
+    const jumpTo = (left: number) => {
         const el = viewportRef.current;
         if (!el) return;
-        const atStart = el.scrollLeft <= 1;
-        const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
-        setEdges({ atStart, atEnd });
-    }, []);
+        const prev = el.style.scrollBehavior;
+        el.style.scrollBehavior = "auto";
+        el.scrollLeft = left;
+        el.style.scrollBehavior = prev;
+    };
 
+    // Park in the middle copy on mount and whenever the recommendation set
+    // changes. Clones are identical, so this is never visible.
     useEffect(() => {
-        updateEdges();
-        window.addEventListener("resize", updateEdges);
-        return () => window.removeEventListener("resize", updateEdges);
-    }, [updateEdges, recs.length]);
+        const el = viewportRef.current;
+        if (!el || !hasSlider) return;
+        jumpTo(el.scrollWidth / 3);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hasSlider, baseRecs.length]);
+
+    /** Hop back into the middle copy once a (button-driven) scroll has rested. */
+    const recenter = () => {
+        const el = viewportRef.current;
+        if (!el || !hasSlider) return;
+        const copy = el.scrollWidth / 3;
+        if (el.scrollLeft >= copy * 2) {
+            jumpTo(el.scrollLeft - copy);
+        } else if (el.scrollLeft < copy) {
+            jumpTo(el.scrollLeft + copy);
+        }
+    };
+
+    const onScroll = () => {
+        if (!hasSlider) return;
+        // Re-center only after the scroll stops emitting events, so the instant
+        // hop never interrupts the in-flight smooth animation.
+        clearTimeout(settleTimer.current);
+        settleTimer.current = setTimeout(recenter, 140);
+    };
 
     /** Scroll the slider by one card in the given direction (-1 prev, +1 next). */
     const slide = (dir: number) => {
@@ -643,7 +679,6 @@ const StepRecommended = ({ goals, isProActive, onConfigure, onBack, onNext }) =>
                             type="button"
                             className="nx-sw__slider-nav nx-sw__slider-nav--prev"
                             onClick={() => slide(-1)}
-                            disabled={edges.atStart}
                             aria-label={__("Previous", "notificationx")}
                         >
                             <WizardIcon name="chevron" size={20} />
@@ -653,12 +688,12 @@ const StepRecommended = ({ goals, isProActive, onConfigure, onBack, onNext }) =>
                     <div
                         className="nx-sw__slider-viewport"
                         ref={viewportRef}
-                        onScroll={updateEdges}
+                        onScroll={onScroll}
                     >
-                        {recs.map((c) => {
+                        {recs.map((c, i) => {
                             const locked = c.isPro && !isProActive;
                             return (
-                                <div key={c.id} className="nx-sw__campaign">
+                                <div key={`${c.id}-${i}`} className="nx-sw__campaign">
                                     <div className="nx-sw__campaign-media">
                                         <CampaignPreview type={c.type} />
                                         <span
@@ -697,7 +732,6 @@ const StepRecommended = ({ goals, isProActive, onConfigure, onBack, onNext }) =>
                             type="button"
                             className="nx-sw__slider-nav nx-sw__slider-nav--next"
                             onClick={() => slide(1)}
-                            disabled={edges.atEnd}
                             aria-label={__("Next", "notificationx")}
                         >
                             <WizardIcon name="chevron" size={20} />

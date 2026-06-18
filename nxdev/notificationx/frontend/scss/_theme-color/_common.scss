@@ -49,3 +49,8 @@
         display: none;
     }
 }
+.source-custom_notification.type-custom .notificationx-inner .notificationx-content .nx-second-row span span {
+    @media only screen and (max-width: 576px) {
+        display: block;
+    }
+}

@@ -130,7 +130,7 @@ const Illustration = () => {
 
             <p className="nx-sw__preview-caption">
                 {__(
-                    "This is how your notifications appear to visitors.",
+                    "This is exactly how your notifications will appear to visitors.",
                     "notificationx"
                 )}
             </p>

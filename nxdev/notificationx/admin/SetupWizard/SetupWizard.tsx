@@ -112,7 +112,7 @@ const CAMPAIGN_CATALOG: Campaign[] = [
     {
         id: "sales",
         title: __("Sales Notification", "notificationx"),
-        desc: __("Display your latest sales to boost credibility and drive more conversions.", "notificationx"),
+        desc: __("Show real purchases as they happen to boost credibility and conversions.", "notificationx"),
         img: `${CDN}/2024/09/sales_notification.gif`,
         type: "conversions",
         source: "woocommerce",
@@ -146,7 +146,7 @@ const CAMPAIGN_CATALOG: Campaign[] = [
     {
         id: "reviews",
         title: __("Reviews Notification", "notificationx"),
-        desc: __("Showcase real customer reviews and ratings to build trust and credibility.", "notificationx"),
+        desc: __("Turn customer reviews into trust signals that convince hesitant buyers.", "notificationx"),
         img: `${CDN}/2024/09/review_notification.gif`,
         type: "reviews",
         source: "wp_reviews",
@@ -399,11 +399,11 @@ const StepWelcome = ({ onStart, onSkip }) => (
         <div className="nx-sw__welcome-body">
             <div className="nx-sw__welcome-main">
                 <h1 className="nx-sw__welcome-title">
-                    {__("Welcome to NotificationX", "notificationx")} 🚀
+                    {__("Welcome to NotificationX — Let’s Turn Activity Into Sales", "notificationx")} 🚀
                 </h1>
                 <p className="nx-sw__welcome-sub">
                     {__(
-                        "Let's personalize your experience and recommend the best notification campaigns for your business.",
+                        "We\'ll recommend the highest-converting notification campaigns for your store — fully set up in under 2 minutes.",
                         "notificationx"
                     )}
                 </p>
@@ -421,16 +421,16 @@ const StepWelcome = ({ onStart, onSkip }) => (
 
                 <div className="nx-sw__welcome-actions">
                     <button className="nx-sw__cta" onClick={onStart}>
-                        {__("Get Started", "notificationx")}
+                        {__("Get My Recommendations", "notificationx")}
                     </button>
                     <button className="nx-sw__cta-skip" onClick={onSkip}>
-                        {__("Skip Setup", "notificationx")}
+                        {__("I\'ll do this Manually", "notificationx")}
                     </button>
                 </div>
 
                 <p className="nx-sw__welcome-fineprint">
                     {__(
-                        "By proceeding, you agree that we will collect your email address to personalize your setup experience.",
+                        "By continuing, you agree to let us use your email to tailor your setup. No spam, ever.",
                         "notificationx"
                     )}
                 </p>
@@ -507,7 +507,7 @@ const StepBusiness = ({
                     {__("Business Type", "notificationx")}
                 </h2>
                 <p className="nx-sw__col-sub">
-                    {__("Tell us about your industry.", "notificationx")}
+                    {__("Pick what describes you best — we\'ll tailor everything to it.", "notificationx")}
                 </p>
                 <div className="nx-sw__options">
                     {BUSINESS_TYPES.map((b) => (
@@ -526,7 +526,7 @@ const StepBusiness = ({
                     {__("Primary Goals", "notificationx")}
                 </h2>
                 <p className="nx-sw__col-sub">
-                    {__("Select what you want to achieve.", "notificationx")}
+                    {__("Choose your goals & we\'ll match the right campaigns. Pick as many as you like.", "notificationx")}
                 </p>
                 <div className="nx-sw__options">
                     {GOALS.map((g) => (
@@ -667,7 +667,7 @@ const StepRecommended = ({ goals, isProActive, onConfigure, onBack, onNext }) =>
                     </h1>
                     <p className="nx-sw__subtitle">
                         {__(
-                            "Based on your goals, here's a mix of free and premium campaigns to get you started.",
+                            "Handpicked for your goals — start with these and you’re live in minutes.",
                             "notificationx"
                         )}
                     </p>
@@ -846,7 +846,7 @@ const NavRow = ({ step, onBack, onNext, hideBack = false }) => (
             {`${__("Step", "notificationx")} ${step} ${__("of", "notificationx")} 4`}
         </span>
         <button className="nx-sw__btn nx-sw__btn--primary" onClick={onNext}>
-            {__("Continue", "notificationx")}
+            {__("See My Recommendations", "notificationx")}
             <WizardIcon name="arrow" size={18} />
         </button>
     </div>

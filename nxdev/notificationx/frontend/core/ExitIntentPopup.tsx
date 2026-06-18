@@ -95,6 +95,56 @@ const ExitIntentPopup = (props: any) => {
         dispatch?.({ type: 'REMOVE_NOTIFICATION', payload: nxExitIntent.id });
     };
 
+    // When the popup hosts an Elementor-built form (e.g. an Elementor Pro Form
+    // widget or our own .nx-form), Elementor / the form script handles the
+    // submit via its own AJAX and only swaps in a success message — it has no
+    // idea it lives inside our popup. Watch for a successful submission and
+    // dismiss the popup so the visitor isn't left staring at the form (with a
+    // now-disabled button) after they've already sent it.
+    useEffect(() => {
+        if (s.mode !== 'elementor' || !s.elementor_html) return;
+        const root = elementorBodyRef.current;
+        if (!root) return;
+
+        let done = false;
+        // Let the success message register for a beat before closing.
+        const dismiss = () => {
+            if (done) return;
+            done = true;
+            setTimeout(() => handleClose(), 2000);
+        };
+
+        // 1) Elementor Pro fires this jQuery event on the form after a
+        //    successful AJAX submit — the common Form widget case.
+        // @ts-ignore
+        const jq = window.jQuery;
+        const onSubmitSuccess = () => dismiss();
+        if (jq) jq(root).on('submit_success', onSubmitSuccess);
+
+        // 2) Our own .nx-form handler dispatches this document event after a
+        //    successful submit (see nx-elementor-form.js).
+        const onNxClose = (ev: any) => {
+            const nxId = ev?.detail?.nxId;
+            if (!nxId || String(nxId) === String(settings?.nx_id)) dismiss();
+        };
+        document.addEventListener('nx:exit-intent-close', onNxClose);
+
+        // 3) Fallback for integrations that fire neither: watch for Elementor's
+        //    success-message element to appear inside the popup.
+        const observer = new MutationObserver(() => {
+            if (root.querySelector(
+                '.elementor-message-success, .e-form__submit__success, .nx-form-message.is-success'
+            )) dismiss();
+        });
+        observer.observe(root, { childList: true, subtree: true });
+
+        return () => {
+            if (jq) jq(root).off('submit_success', onSubmitSuccess);
+            document.removeEventListener('nx:exit-intent-close', onNxClose);
+            observer.disconnect();
+        };
+    }, [s.mode, s.elementor_html, isVisible]);
+
     const renderCta = (className: string, style: React.CSSProperties, label: string) => {
         const rawUrl  = s.exit_intent_button_url;
         const url     = typeof rawUrl === 'string' ? rawUrl.trim() : '';

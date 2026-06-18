@@ -93,6 +93,7 @@ body.nx-setup-wizard-active {
         line-height: 1.2;
         color: $sw-h;
         margin: 0 0 12px;
+        padding-bottom: 6px !important;
     }
 
     &__subtitle {
@@ -183,7 +184,7 @@ body.nx-setup-wizard-active {
 
     &__heading-center {
         text-align: center;
-        margin-bottom: 20px;
+        // margin-bottom: 20px;
 
         .nx-sw__subtitle {
             margin: 0 auto;
@@ -319,7 +320,7 @@ body.nx-setup-wizard-active {
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        padding: 28px 44px;
+        padding: 20px 44px;
     }
 
     // The in-card header block; its bottom border spans the FULL card width.

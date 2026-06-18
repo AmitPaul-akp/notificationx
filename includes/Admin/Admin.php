@@ -475,6 +475,18 @@ class Admin {
             return false;
         }
 
+        // Delay the popup until 1 day after installation. Quick Setup already
+        // handles onboarding, so this stays out of the way on the first day.
+        $install_time = get_option('nx_initial_popup_install_time', false);
+        if (!$install_time) {
+            $install_time = time();
+            update_option('nx_initial_popup_install_time', $install_time);
+        }
+
+        if ((time() - (int) $install_time) < DAY_IN_SECONDS) {
+            return false;
+        }
+
         return true;
     }
 

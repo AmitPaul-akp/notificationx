@@ -14,7 +14,9 @@
     "pot": "wp i18n make-pot . languages/notificationx.pot --exclude='nxbuild'",
     "bb": "wp-scripts build --config webpack.blocks.config.js",
     "blocks": "wp-scripts start --config webpack.blocks.config.js",
-    "release": "npm run build && npm run bb && npm run pot",
+    "cd": "wp-scripts build --config webpack.countdown.config.js",
+    "cd-watch": "wp-scripts start --config webpack.countdown.config.js",
+    "release": "npm run build && npm run bb && npm run cd && npm run pot",
     "zip": "npm run release && wp dist-archive .",
     "packages-update": "wp-scripts packages-update"
   },

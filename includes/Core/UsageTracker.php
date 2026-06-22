@@ -7,16 +7,18 @@
  * WP Insights tracking payload that is sent (once per day, after user opt-in)
  * to send.wpinsight.com via {@see \NotificationX\Admin\PluginInsights}.
  *
- * The data is attached to the payload's `optional_data` key, which the
- * wpinsights app renders as grouped tables. The structure is:
+ * The data is attached to the payload's `optional_data` key. The wpinsights
+ * app renders `optional_data` as a flat `key => value` table (nested arrays
+ * show up as "[object Object]"), so every value here is a scalar count and the
+ * type/source grouping is expressed through key prefixes:
  *
- *   created_notifications          => total notifications
- *   notificationx-total-active     => total enabled notifications
- *   notificationx-total-inactive   => total disabled notifications
- *   active-notification-type       => [ notificationx-active-type-<slug>   => count, ... ]
- *   created-notification-type      => [ notificationx-type-<slug>          => count, ... ]
- *   active-notification-source     => [ notificationx-active-source-<slug> => count, ... ]
- *   created_notification-source    => [ notificationx-source-<slug>        => count, ... ]
+ *   created_notifications              => total notifications
+ *   notificationx-total-active         => total enabled notifications
+ *   notificationx-total-inactive       => total disabled notifications
+ *   notificationx-type-<slug>          => count of notifications of that type
+ *   notificationx-source-<slug>        => count of notifications using that source
+ *   notificationx-active-type-<slug>   => count of *enabled* notifications of that type
+ *   notificationx-active-source-<slug> => count of *enabled* notifications using that source
  *
  * No additional cron is required: PluginInsights already schedules a daily
  * `put_do_weekly_action` event whose payload we enrich here through the
@@ -87,22 +89,30 @@ class UsageTracker {
         $total        = array_sum( $by_type );
         $total_active = array_sum( $by_type_active );
 
+        // The wpinsights app renders optional_data as a flat key => value
+        // table; nested arrays display as "[object Object]". So everything is
+        // flattened to top-level scalar keys, with descriptive prefixes that
+        // keep the type/source grouping readable by name.
         $data = [
-            'created_notifications'                 => $total,
-            self::KEY_PREFIX . 'total-active'       => $total_active,
-            self::KEY_PREFIX . 'total-inactive'     => max( 0, $total - $total_active ),
-            'active-notification-type'              => $this->prefix_keys( self::KEY_PREFIX . 'active-type-', $by_type_active ),
-            'created-notification-type'             => $this->prefix_keys( self::KEY_PREFIX . 'type-', $by_type ),
-            'active-notification-source'            => $this->prefix_keys( self::KEY_PREFIX . 'active-source-', $by_src_active ),
-            'created_notification-source'           => $this->prefix_keys( self::KEY_PREFIX . 'source-', $by_source ),
+            'created_notifications'             => $total,
+            self::KEY_PREFIX . 'total-active'   => $total_active,
+            self::KEY_PREFIX . 'total-inactive' => max( 0, $total - $total_active ),
         ];
+
+        $data = array_merge(
+            $data,
+            $this->prefix_keys( self::KEY_PREFIX . 'type-', $by_type ),
+            $this->prefix_keys( self::KEY_PREFIX . 'source-', $by_source ),
+            $this->prefix_keys( self::KEY_PREFIX . 'active-type-', $by_type_active ),
+            $this->prefix_keys( self::KEY_PREFIX . 'active-source-', $by_src_active )
+        );
 
         /**
          * Filter the final NotificationX optional_data before it is attached
          * to the tracking payload.
          *
          * @since 3.3.0
-         * @param array $data Grouped usage data.
+         * @param array<string,int> $data Flat usage count map.
          */
         return apply_filters( 'nx_usage_tracker_data', $data );
     }

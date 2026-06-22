@@ -75,6 +75,7 @@ class ComposerStaticInit89ec86686dc155609d949b902a87bbd5
         'NotificationX\\Core\\SetupWizard' => __DIR__ . '/../..' . '/includes/Core/SetupWizard.php',
         'NotificationX\\Core\\ShortcodeInline' => __DIR__ . '/../..' . '/includes/Features/ShortcodeInline.php',
         'NotificationX\\Core\\Upgrader' => __DIR__ . '/../..' . '/includes/Core/Upgrader.php',
+        'NotificationX\\Core\\UsageTracker' => __DIR__ . '/../..' . '/includes/Core/UsageTracker.php',
         'NotificationX\\Core\\WPDRoleManagement' => __DIR__ . '/../..' . '/includes/Core/WPDRoleManagement.php',
         'NotificationX\\Extensions\\ActiveCampaign\\ActiveCampaign' => __DIR__ . '/../..' . '/includes/Extensions/ActiveCampaign/ActiveCampaign.php',
         'NotificationX\\Extensions\\BitIntegrations\\BitIntegrations' => __DIR__ . '/../..' . '/includes/Extensions/BitIntegrations/BitIntegrations.php',

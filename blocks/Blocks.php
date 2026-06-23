@@ -64,8 +64,17 @@ class Blocks {
             false
         );
 
+        // The inline block's edit.js reads `nx_style_handler.editor_type` to pick
+        // the right preview-device store. Attach that global to the lightweight,
+        // always-loaded controls handle so it is available on every editor screen
+        // — without dragging in the heavy style-handler.js / wp-edit-site bundle.
+        // The site editor overrides editor_type to 'edit-site' in StyleHandler.
+        wp_localize_script( 'notificationx-block-controls', 'nx_style_handler', [
+            'sth_nonce'   => wp_create_nonce( 'nx_style_handler_nonce' ),
+            'editor_type' => 'edit-post',
+        ] );
+
         $asset_file                   = include NOTIFICATIONX_PATH . 'blocks/notificationx/index.asset.php';
-        $asset_file['dependencies'][] = 'notificationx-pro-blocks-edit-post';
         $index_js                     = 'notificationx/index.js';
         wp_register_script(
             'notificationx-block-editor',

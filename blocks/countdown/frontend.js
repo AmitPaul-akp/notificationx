@@ -132,9 +132,77 @@
     }
   }
 
+  // Run once on initial page load.
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initAll);
   } else {
     initAll();
+  }
+
+  // NotificationX injects press bars into the DOM after page load and calls
+  // window.ebRunCountDown() once a bar is mounted. Expose initAll under that
+  // hook so block countdowns inside a dynamically-injected bar — e.g. on the
+  // preview screen, where the bar's assets aren't re-loaded — get initialized.
+  // Chain any pre-existing hook (e.g. Essential Blocks) instead of clobbering
+  // it; initAll() is idempotent via the data-nx-countdown-init guard.
+  var prevRunCountDown =
+    typeof window.ebRunCountDown === "function" ? window.ebRunCountDown : null;
+  window.ebRunCountDown = function () {
+    if (prevRunCountDown) {
+      try {
+        prevRunCountDown();
+      } catch (e) {}
+    }
+    initAll();
+  };
+
+  // Fallback: watch for late-injected countdowns directly, in case a bar is
+  // mounted without the hook firing. Guarded to a single observer per page and
+  // scoped so it only does work when a countdown wrapper actually appears.
+  if (
+    !window.__nxCountdownObserverAttached &&
+    typeof MutationObserver !== "undefined"
+  ) {
+    window.__nxCountdownObserverAttached = true;
+
+    var hasCountdown = function (node) {
+      if (!node || node.nodeType !== 1) return false;
+      if (node.classList && node.classList.contains("nx-countdown-wrapper")) {
+        return true;
+      }
+      return (
+        typeof node.querySelector === "function" &&
+        !!node.querySelector(".nx-countdown-wrapper")
+      );
+    };
+
+    var pending = false;
+    var observer = new MutationObserver(function (mutations) {
+      if (pending) return;
+      for (var i = 0; i < mutations.length; i++) {
+        var added = mutations[i].addedNodes;
+        for (var j = 0; j < added.length; j++) {
+          if (hasCountdown(added[j])) {
+            pending = true;
+            setTimeout(function () {
+              pending = false;
+              initAll();
+            }, 50);
+            return;
+          }
+        }
+      }
+    });
+
+    var startObserving = function () {
+      if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+    };
+    if (document.body) {
+      startObserving();
+    } else {
+      document.addEventListener("DOMContentLoaded", startObserving);
+    }
   }
 })();

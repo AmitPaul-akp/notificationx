@@ -59,6 +59,7 @@ class ComposerStaticInit89ec86686dc155609d949b902a87bbd5
         'NotificationX\\Core\\Inline' => __DIR__ . '/../..' . '/includes/Features/Inline.php',
         'NotificationX\\Core\\Limiter' => __DIR__ . '/../..' . '/includes/Core/Limiter.php',
         'NotificationX\\Core\\Locations' => __DIR__ . '/../..' . '/includes/Core/Locations.php',
+        'NotificationX\\Core\\Maintenance' => __DIR__ . '/../..' . '/includes/Core/Maintenance.php',
         'NotificationX\\Core\\Migration' => __DIR__ . '/../..' . '/includes/Core/Migration.php',
         'NotificationX\\Core\\Modules' => __DIR__ . '/../..' . '/includes/Core/Modules.php',
         'NotificationX\\Core\\PostType' => __DIR__ . '/../..' . '/includes/Core/PostType.php',

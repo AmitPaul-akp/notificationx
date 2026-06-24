@@ -17,6 +17,7 @@ use NotificationX\Core\Database;
 use NotificationX\Core\PostType;
 use NotificationX\Core\SetupWizard;
 use NotificationX\Core\UsageTracker;
+use NotificationX\Core\Maintenance;
 use NotificationX\Core\Upgrader;
 use NotificationX\GetInstance;
 use NotificationX\Extensions\ExtensionFactory;
@@ -66,6 +67,7 @@ class Admin {
         XSS::get_instance();
         InfoTooltipManager::get_instance();
         UsageTracker::get_instance();
+        Maintenance::get_instance();
         add_action('init', [$this, 'init'], 5);
         add_filter('nx_rest_miscellaneous', [$this, 'handle_miscellaneous_actions'], 10, 2);
         add_filter('nx_builder_configs', [$this, 'add_popup_status_to_context'], 10, 1);

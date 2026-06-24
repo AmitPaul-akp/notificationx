@@ -36,6 +36,7 @@ return array(
     'NotificationX\\Core\\Inline' => $baseDir . '/includes/Features/Inline.php',
     'NotificationX\\Core\\Limiter' => $baseDir . '/includes/Core/Limiter.php',
     'NotificationX\\Core\\Locations' => $baseDir . '/includes/Core/Locations.php',
+    'NotificationX\\Core\\Maintenance' => $baseDir . '/includes/Core/Maintenance.php',
     'NotificationX\\Core\\Migration' => $baseDir . '/includes/Core/Migration.php',
     'NotificationX\\Core\\Modules' => $baseDir . '/includes/Core/Modules.php',
     'NotificationX\\Core\\PostType' => $baseDir . '/includes/Core/PostType.php',
